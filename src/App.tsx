@@ -1,17 +1,17 @@
-import { createRoot } from 'react-dom/client'
-import { createWorkerFactory } from '@shopify/web-worker'
+import './App.css'
 
-export const createWorker = createWorkerFactory(() => import('./worker'))
-const worker = createWorker()
+const worker = new ComlinkWorker<typeof import('./worker')>(
+  new URL('./worker', import.meta.url)
+)
 
 function App() {
-  // async process by web worker
+  // async process by comlink(web worker)
   const connectDB = async () => {
     await worker.connectDB()
-    // Create Table
+    // Create table
     await worker.exec('CREATE TABLE IF NOT EXISTS users(id INTEGER, name TEXT)')
 
-    // Export User Data
+    // Export user data
     dumpUsers()
   }
 
@@ -25,7 +25,7 @@ function App() {
       bind: [max + 1, `Alice${max + 1}`]
     })
 
-    // Insert row by prepare & build
+    // Insert row by prepare & bind
     const handle1 = await worker.prepare('insert into users values(?, ?)')
     const handle2 = await worker.prepare('insert into users values(?, ?)')
     await worker.binding(handle1, [max + 2, `Bob${max + 2}`])
@@ -33,7 +33,7 @@ function App() {
     await worker.stepFinalize(handle1)
     await worker.stepFinalize(handle2)
 
-    // Export User Data
+    // Export user data
     dumpUsers()
   }
 
@@ -47,16 +47,32 @@ function App() {
     console.log(values)
   }
 
+  const downloadFile = async () => {
+    const opfsRoot = await navigator.storage.getDirectory()
+    console.log(opfsRoot)
+    const fileHandle = await opfsRoot.getFileHandle('/mydb.sqlite3', {
+      create: true
+    })
+    const file = await fileHandle.getFile()
+    const url = URL.createObjectURL(file)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = file.name
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   return (
-    <>
-      <h1>Hello, Hono with React & SQLite WASM!</h1>
-      <h2>Example</h2>
-      <button onClick={() => connectDB()}>Connect DB</button>
-      <button onClick={() => execute()}>Execute Query</button>
-    </>
+    <div>
+      <button onClick={() => connectDB()}>Create DB</button>
+      <br />
+      <button onClick={() => execute()}>Exec Query</button>
+      <br />
+      <button onClick={() => downloadFile()}>Download SQL File</button>
+    </div>
   )
 }
 
-const domNode = document.getElementById('root')!
-const root = createRoot(domNode)
-root.render(<App />)
+export default App

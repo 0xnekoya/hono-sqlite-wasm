@@ -12,7 +12,7 @@ const error = (...args: any[]) => console.error(...args)
 let db: Database | null = null
 
 /**
- * Initialize & connect DBDB
+ * Initialize & connect to DB
  * @returns Database
  */
 export const connectDB = async (): Promise<Database> => {
@@ -29,7 +29,7 @@ export const connectDB = async (): Promise<Database> => {
       printErr: error
     })
 
-    // connect DB
+    // connect to DB
     db = openDB(sqlite3)
 
     return db
@@ -44,7 +44,7 @@ export const connectDB = async (): Promise<Database> => {
 }
 
 /**
- * Connect to sqlite3 & create DB
+ * Connect to sqlite3 & create database
  * ・https://sqlite.org/wasm/doc/tip/api-oo1.md
  * @param sqlite3
  * @returns
@@ -52,7 +52,7 @@ export const connectDB = async (): Promise<Database> => {
 const openDB = (sqlite3: Sqlite3Static) => {
   log('Running SQLite3 version', sqlite3.version.libVersion)
 
-  // if opfs isavailable, create OpfsDb
+  // If opfs is available, create OpfsDb
   if ('opfs' in sqlite3) {
     // (c: create if it does not exist, t: trace on)
     db = new sqlite3.oo1.OpfsDb('/mydb.sqlite3', 'ct')
@@ -104,10 +104,10 @@ export const selectValue = (
 
 /**
  * Database::prepare() returns a Statement but cannot be passed to the main UI thread side
- * (The value is passed serialized, but the method call cannot be made from the UI thread)
- * So, hold the Statement in objectStore,
- * The main UI thread returns a key (pointer) to retrieve the value.
- * (On the UI thread side, the variable is named handle to clarify its role.)
+ * (the value is passed serialized, but no method call can be made from the UI thread)
+ * So, keep the Statement in the objectStore,
+ * return a key (pointer) to the main UI thread side to get the value
+ * (On the UI thread side, the variable name "handle" is used to clarify the role)
  */
 const objectStore: {
   [key: number]: object

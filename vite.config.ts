@@ -1,39 +1,21 @@
-import pages from '@hono/vite-cloudflare-pages'
-import devServer from '@hono/vite-dev-server'
 import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { comlink } from 'vite-plugin-comlink'
 
-export default defineConfig(({ mode }) => {
-  if (mode === 'client') {
-    return {
-      build: {
-        rollupOptions: {
-          input: './src/client.tsx',
-          output: {
-            entryFileNames: 'static/client.js'
-          }
-        }
-      }
+// https://vitejs.dev/config/
+export default defineConfig({
+  base: './',
+  plugins: [comlink(), react()],
+  server: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp'
     }
-  } else {
-    return {
-      ssr: {
-        external: ['react', 'react-dom']
-      },
-      plugins: [
-        pages(),
-        devServer({
-          entry: 'src/index.tsx'
-        })
-      ],
-      server: {
-        headers: {
-          'Cross-Origin-Opener-Policy': 'same-origin',
-          'Cross-Origin-Embedder-Policy': 'require-corp'
-        }
-      },
-      optimizeDeps: {
-        exclude: ['@sqlite.org/sqlite-wasm']
-      }
-    }
+  },
+  optimizeDeps: {
+    exclude: ['@sqlite.org/sqlite-wasm']
+  },
+  worker: {
+    plugins: () => [comlink()]
   }
 })
