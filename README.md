@@ -22,3 +22,8 @@ bun create hono hono-sqlite-wasm
 ? Which package manager do you want to use? bun
 ✔ Installing project dependencies
 ```
+
+```shell
+bun add react react-dom
+bun add -D @types/react @types/react-dom
+```
