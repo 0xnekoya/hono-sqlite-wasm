@@ -10,10 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@sqlite.org/sqlite-wasm": "^3.46.0-build2",
-    "comlink": "^4.4.1",
+    "@libsql/client": "^0.6.2",
+    "drizzle-orm": "^0.31.2",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "sqlocal": "^0.9.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
@@ -25,7 +26,6 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
     "typescript": "^5.2.2",
-    "vite": "^5.2.0",
-    "vite-plugin-comlink": "^4.0.2"
+    "vite": "^5.2.0"
   }
 }

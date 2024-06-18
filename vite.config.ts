@@ -1,11 +1,22 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { comlink } from 'vite-plugin-comlink'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   base: './',
-  plugins: [comlink(), react()],
+  plugins: [
+    react(),
+    {
+      name: 'configure-response-headers',
+      configureServer: server => {
+        server.middlewares.use((_req, res, next) => {
+          res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp')
+          res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
+          next()
+        })
+      }
+    }
+  ],
   server: {
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
@@ -13,9 +24,6 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    exclude: ['@sqlite.org/sqlite-wasm']
-  },
-  worker: {
-    plugins: () => [comlink()]
+    exclude: ['sqlocal']
   }
 })

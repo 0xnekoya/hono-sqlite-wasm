@@ -57,6 +57,13 @@ Create `worker.ts`
 
 Update `client.tsx` using SQLite WASM (by Web Worker)
 
+### Install Drizzle ORM
+
+```shell
+bun add sqlocal
+bun add drizzle-orm @libsql/client
+```
+
 ### Reference
 
-- [Hono で API 付き雑 React SPA 最小](https://zenn.dev/yusukebe/articles/06d9cc1714bfb7)
+- [Web 上でデータベースを学習できる環境を開発する](https://zenn.dev/steelydylan/scraps/afffc39c5218ea)

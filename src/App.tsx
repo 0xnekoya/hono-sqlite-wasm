@@ -1,54 +1,37 @@
 import './App.css'
-
-const worker = new ComlinkWorker<typeof import('./worker')>(
-  new URL('./worker', import.meta.url)
-)
+import { SQLocalDrizzle } from 'sqlocal/drizzle'
+import { drizzle } from 'drizzle-orm/sqlite-proxy'
+import { SQLocal } from 'sqlocal'
+import { int, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 function App() {
-  // async process by comlink(web worker)
-  const connectDB = async () => {
-    await worker.connectDB()
-    // Create table
-    await worker.exec('CREATE TABLE IF NOT EXISTS users(id INTEGER, name TEXT)')
+  const execWithDrizzle = async () => {
+    const { sql } = new SQLocal('db.sqlite3')
+    await sql`CREATE TABLE groceries (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)`
+    const items = ['bread', 'milk', 'rice']
+    for (let item of items) {
+      await sql`INSERT INTO groceries (name) VALUES (${item})`
+    }
 
-    // Export user data
-    dumpUsers()
-  }
+    const { driver } = new SQLocalDrizzle('db.sqlite3')
+    const db = drizzle(driver)
 
-  const execute = async () => {
-    const select_max = 'SELECT max(id) as max_count FROM users'
-    const max = ((await worker.selectValue(select_max)) as number) ?? 0
-
-    // Insert row by exec
-    await worker.exec({
-      sql: 'insert into users values(?,?)',
-      bind: [max + 1, `Alice${max + 1}`]
+    const groceries = sqliteTable('groceries', {
+      id: int('id').primaryKey({ autoIncrement: true }),
+      name: text('name').notNull()
     })
 
-    // Insert row by prepare & bind
-    const handle1 = await worker.prepare('insert into users values(?, ?)')
-    const handle2 = await worker.prepare('insert into users values(?, ?)')
-    await worker.binding(handle1, [max + 2, `Bob${max + 2}`])
-    await worker.binding(handle2, [max + 3, `Carol${max + 3}`])
-    await worker.stepFinalize(handle1)
-    await worker.stepFinalize(handle2)
-
-    // Export user data
-    dumpUsers()
-  }
-
-  const dumpUsers = async () => {
-    const values = await worker.exec({
-      sql: 'SELECT * FROM users',
-      rowMode: 'object',
-      returnValue: 'resultRows'
-    })
-
-    console.log(values)
+    // Make type-safe queries
+    const data = await db
+      .select({ name: groceries.name })
+      .from(groceries)
+      .orderBy(groceries.name)
+      .all()
+    console.log(data)
   }
 
   const downloadFile = async () => {
-    const fileName = 'mydb.sqlite3'
+    const fileName = 'db.sqlite3'
     const root = await navigator.storage.getDirectory()
     if (!('values' in root) || typeof root.values !== 'function') {
       return
@@ -73,9 +56,7 @@ function App() {
 
   return (
     <div>
-      <button onClick={() => connectDB()}>Create DB</button>
-      <br />
-      <button onClick={() => execute()}>Exec Query</button>
+      <button onClick={() => execWithDrizzle()}>Exec Query with Drizzle</button>
       <br />
       <button onClick={() => downloadFile()}>Download SQL File</button>
     </div>
