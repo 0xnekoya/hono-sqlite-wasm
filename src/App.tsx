@@ -48,20 +48,27 @@ function App() {
   }
 
   const downloadFile = async () => {
-    const opfsRoot = await navigator.storage.getDirectory()
-    console.log(opfsRoot)
-    const fileHandle = await opfsRoot.getFileHandle('/mydb.sqlite3', {
-      create: true
-    })
-    const file = await fileHandle.getFile()
-    const url = URL.createObjectURL(file)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = file.name
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
+    const fileName = 'mydb.sqlite3'
+    const root = await navigator.storage.getDirectory()
+    if (!('values' in root) || typeof root.values !== 'function') {
+      return
+    }
+    for await (const handle of root.values()) {
+      if (handle instanceof FileSystemFileHandle) {
+        const file = await handle.getFile()
+        if (file.name !== fileName) {
+          continue
+        }
+        const url = URL.createObjectURL(file)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = file.name
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+      }
+    }
   }
 
   return (
